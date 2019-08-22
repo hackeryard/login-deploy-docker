@@ -27,4 +27,5 @@ fi
 
 # 进入bin目录 执行数据库初始化
 loginserver_install_dir='/root/loginserver-docker'
-cd $loginserver_install_dir && pip install -r requirements.txt && python manage.py migrate
+export LOGINSERVER_CONF_FILE=`pwd`/loginserver_config.ini
+cd $loginserver_install_dir && python manage.py migrate

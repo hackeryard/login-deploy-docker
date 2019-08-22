@@ -1,5 +1,5 @@
-#!/usr/bin/python 
-# -*- coding: utf-8 -*-   
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 import sys,getopt,os,shutil
 from string import Template
@@ -8,7 +8,7 @@ from string import Template
 class FileTemplate(Template):
     delimiter='$'
 
-def generate_config_file(loginserver_ip,loginserver_port,hydra_ip,hydra_port,login_consent_ip,login_consent_port,grafana_ip,grafana_port):
+def generate_config_file(loginserver_ip,loginserver_port,hydra_ip,hydra_port,login_consent_ip,login_consent_port,grafana_ip,grafana_port,nginx_ip,nginx_port):
 
     # loginserver_config.ini
     loginserver_config_template_str='''# loginserver的配置文件
@@ -23,12 +23,10 @@ bk_cookie_domain = $loginserver_ip
 paas_domain = $loginserver_ip:$loginserver_port
 # 日志级别
 log_level = DEBUG
-
 # 初始密码设定
 [admin]
 username = admin
 password = admin
-
 [oauth]
 # oauth2.0 登录URL
 login_url = http://$hydra_ip:$hydra_port/oauth2/auth
@@ -40,7 +38,6 @@ userinfo_url = http://$hydra_ip:$hydra_port/userinfo
 client_id = test-client
 # OAuth 2.0 客户端 密钥
 client_secret = test-secret
-
 # 数据库设定
 [database]
 host = localhost
@@ -60,11 +57,9 @@ port = 3306
 [server]
 port = $login_consent_port
 hydra_admin_url = http://$hydra_ip:4445
-
 [remember]
 login_remember = 300
 consent_remember = 300
-
 [database]
 host = localhost
 user = root
@@ -82,17 +77,17 @@ database = open_paas
 LOGIN_PROVIDER_IP_PORT=$login_consent_ip:$login_consent_port
 HYDRA_ISSUER_IP=$hydra_ip
 HYDRA_ISSUER_PORT=$hydra_port
-
 #config LOGINSERVER
 LOGINSERVER_IP=$loginserver_ip
 LOGINSERVER_PORT=$loginserver_port
-
 #config grafana client
 GRAFANA_IP=$grafana_ip
 GRAFANA_PORT=$grafana_port
+NGINX_IP=$nginx_ip
+NGINX_PORT=$nginx_port
 '''
     template = FileTemplate(hydra_config_template_str)
-    result = template.substitute(dict(login_consent_ip=login_consent_ip,login_consent_port=login_consent_port,hydra_ip=hydra_ip,hydra_port=hydra_port,loginserver_ip=loginserver_ip,loginserver_port=loginserver_port,grafana_ip=grafana_ip,grafana_port=grafana_port))
+    result = template.substitute(dict(login_consent_ip=login_consent_ip,login_consent_port=login_consent_port,hydra_ip=hydra_ip,hydra_port=hydra_port,loginserver_ip=loginserver_ip,loginserver_port=loginserver_port,grafana_ip=grafana_ip,grafana_port=grafana_port,nginx_ip=nginx_ip,nginx_port=nginx_port))
     with open("hydra_config.ini",'w') as tmp_file:
         tmp_file.write(result)
 
@@ -102,10 +97,11 @@ def main(argv):
     hydra_port='4443'
     login_consent_port='3001'
     grafana_port='3000'
+    nginx_port='8089'
     try:#need remove
         opts, _ = getopt.getopt(argv,"hd:D:r:p:x:s:m:P:X:S:u:U:a:l:"\
         ,["help","loginserver_ip=","loginserver_port=","hydra_ip=","hydra_port="\
-        ,"login_consent_ip=","login_consent_port=","grafana_ip=","grafana_port="])
+        ,"login_consent_ip=","login_consent_port=","grafana_ip=","grafana_port=","nginx_ip=","nginx_port="])
 
     except getopt.GetoptError as e:
         print("\n \t",e.msg)
@@ -119,6 +115,8 @@ def main(argv):
       --login_consent_port      <login_consent_port>      the login-conset port, default 3001
       --grafana_ip              <grafana_ip>              the grafana service ip, eg:10.10.26.24
       --grafana_port            <grafana_port>            the grafana service port, default 3000
+      --nginx_ip                <nginx_ip>                the nginx reverse server ip
+      --nginx_port              <nginx_port>              the nginx reverse server port, default 8089
     ''')
 
         sys.exit(2)
@@ -133,6 +131,8 @@ def main(argv):
       --login_consent_port      <login_consent_port>      the login-conset port, default 3001
       --grafana_ip              <grafana_ip>              the grafana service ip, eg:10.10.26.24
       --grafana_port            <grafana_port>            the grafana service port, default 3000
+      --nginx_ip                <nginx_ip>                the nginx reverse server ip
+      --nginx_port              <nginx_port>              the nginx reverse server port, default 8089
     ''')
         sys.exit(2)
 
@@ -148,6 +148,8 @@ def main(argv):
         --login_consent_port      <login_consent_port>      the login-conset port, default 3001
         --grafana_ip              <grafana_ip>              the grafana service ip, eg:10.10.26.24
         --grafana_port            <grafana_port>            the grafana service port, default 3000
+      --nginx_ip                <nginx_ip>                the nginx reverse server ip
+      --nginx_port              <nginx_port>              the nginx reverse server port, default 8089
     ''')
             sys.exit()
         elif opt in ("--loginserver_ip"):
@@ -174,7 +176,13 @@ def main(argv):
         elif opt in ("--grafana_port"):
             grafana_port = arg
             print('grafana_port:',grafana_port)
-    
+        elif opt in ("--nginx_ip"):
+            nginx_ip = arg
+            print('nginx_ip:',nginx_ip)
+        elif opt in ("--nginx_port"):
+            nginx_port = arg
+            print('nginx_port:',nginx_port)
+
     if 0 == len(loginserver_ip):
         print('please input the loginserver ip, eg:10.10.26.24')
         sys.exit()
@@ -199,8 +207,14 @@ def main(argv):
     if 0 == len(grafana_port):
         print('please input the grafana service port, default 3000')
         sys.exit()
+    if 0 == len(nginx_ip):
+        print('please input the nginx service ip, eg:10.10.26.24')
+        sys.exit()
+    if 0 == len(nginx_port):
+        print('please input the nginx service port, default 8089')
+        sys.exit()
 
-    generate_config_file(loginserver_ip,loginserver_port,hydra_ip,hydra_port,login_consent_ip,login_consent_port,grafana_ip,grafana_port)
+    generate_config_file(loginserver_ip,loginserver_port,hydra_ip,hydra_port,login_consent_ip,login_consent_port,grafana_ip,grafana_port,nginx_ip,nginx_port)
     print('initial configurations success, configs could be found at loginserver_conf.ini/node_config.ini/hydra_config.ini')
 if __name__=="__main__":
     main(sys.argv[1:])

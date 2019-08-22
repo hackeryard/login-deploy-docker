@@ -47,7 +47,7 @@ sleep 15
 --response-types code,id_token \
 --grant-types refresh_token,authorization_code \
 --scope openid,offline \
---callbacks http://${GRAFANA_IP}:${GRAFANA_PORT}/grafana/login/generic_oauth
+--callbacks http://${NGINX_IP}:${NGINX_PORT}/grafana/login/generic_oauth
 
 ./hydra clients create \
 --endpoint http://${HYDRA_ISSUER_IP}:4445 \
