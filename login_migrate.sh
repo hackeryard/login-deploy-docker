@@ -6,11 +6,13 @@
 export LOGINSERVER_CONF_FILE=`pwd`/loginserver_config.ini
 echo ${LOGINSERVER_CONF_FILE}
  
-HOSTNAME="192.168.48.136"
-PORT="3306"
-USERNAME="root"
-PASSWORD="password"
- 
+# using env to subtitude
+#HOSTNAME="192.168.48.136"
+#PORT="3306"
+#USERNAME="root"
+#PASSWORD="password"
+source mysql_config.ini
+
 DBNAME="open_paas"
  
 MYSQL_CMD="mysql -h${HOSTNAME}  -P${PORT}  -u${USERNAME} -p${PASSWORD}"
