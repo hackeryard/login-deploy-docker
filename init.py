@@ -8,7 +8,7 @@ from string import Template
 class FileTemplate(Template):
     delimiter='$'
 
-def generate_config_file(loginserver_ip,loginserver_port,hydra_ip,hydra_port,login_consent_ip,login_consent_port,grafana_ip,grafana_port,nginx_ip,nginx_port):
+def generate_config_file(loginserver_ip,loginserver_port,hydra_ip,hydra_port,login_consent_ip,login_consent_port,grafana_ip,grafana_port,nginx_ip,nginx_port,mysql_hostname,mysql_port,mysql_username,mysql_password):
 
     # loginserver_config.ini
     loginserver_config_template_str='''# loginserver的配置文件
@@ -91,6 +91,18 @@ NGINX_PORT=$nginx_port
     with open("hydra_config.ini",'w') as tmp_file:
         tmp_file.write(result)
 
+    # mysql_config.ini
+    mysql_config_template_str='''# config mysql
+HOSTNAME=$mysql_hostname
+PORT=$mysql_port
+USERNAME=$mysql_username
+PASSWORD=$mysql_password
+'''
+    template = FileTemplate(mysql_config_template_str)
+    result = template.substitute(dict(mysql_hostname=mysql_hostname,mysql_port=mysql_port,mysql_username=mysql_username,mysql_password=mysql_password))
+    with open("mysql_config.ini",'w') as tmp_file:
+        tmp_file.write(result)
+
 
 def main(argv):
     loginserver_port='8003'
@@ -98,10 +110,13 @@ def main(argv):
     login_consent_port='3001'
     grafana_port='3000'
     nginx_port='8089'
+    mysql_username='root'
+    mysql_port='3306'
+
     try:#need remove
         opts, _ = getopt.getopt(argv,"hd:D:r:p:x:s:m:P:X:S:u:U:a:l:"\
         ,["help","loginserver_ip=","loginserver_port=","hydra_ip=","hydra_port="\
-        ,"login_consent_ip=","login_consent_port=","grafana_ip=","grafana_port=","nginx_ip=","nginx_port="])
+        ,"login_consent_ip=","login_consent_port=","grafana_ip=","grafana_port=","nginx_ip=","nginx_port=","mysql_hostname=","mysql_port=","mysql_username=","mysql_password="])
 
     except getopt.GetoptError as e:
         print("\n \t",e.msg)
@@ -117,6 +132,10 @@ def main(argv):
       --grafana_port            <grafana_port>            the grafana service port, default 3000
       --nginx_ip                <nginx_ip>                the nginx reverse server ip
       --nginx_port              <nginx_port>              the nginx reverse server port, default 8089
+      --mysql_hostame           <mysql_hostname>          the mysql servive for loginserver and consent
+      --mysql_port              <mysql_port>
+      --mysql_username          <mysql_username>
+      --mysql_password          <mysql_password>
     ''')
 
         sys.exit(2)
@@ -133,6 +152,10 @@ def main(argv):
       --grafana_port            <grafana_port>            the grafana service port, default 3000
       --nginx_ip                <nginx_ip>                the nginx reverse server ip
       --nginx_port              <nginx_port>              the nginx reverse server port, default 8089
+      --mysql_hostame           <mysql_hostname>          the mysql servive for loginserver and consent
+      --mysql_port              <mysql_port>
+      --mysql_username          <mysql_username>
+      --mysql_password          <mysql_password>
     ''')
         sys.exit(2)
 
@@ -148,8 +171,12 @@ def main(argv):
         --login_consent_port      <login_consent_port>      the login-conset port, default 3001
         --grafana_ip              <grafana_ip>              the grafana service ip, eg:10.10.26.24
         --grafana_port            <grafana_port>            the grafana service port, default 3000
-      --nginx_ip                <nginx_ip>                the nginx reverse server ip
-      --nginx_port              <nginx_port>              the nginx reverse server port, default 8089
+        --nginx_ip                <nginx_ip>                the nginx reverse server ip
+        --nginx_port              <nginx_port>              the nginx reverse server port, default 8089
+        --mysql_hostame           <mysql_hostname>          the mysql servive for loginserver and consent
+        --mysql_port              <mysql_port>
+        --mysql_username          <mysql_username>
+        --mysql_password          <mysql_password>
     ''')
             sys.exit()
         elif opt in ("--loginserver_ip"):
@@ -182,6 +209,18 @@ def main(argv):
         elif opt in ("--nginx_port"):
             nginx_port = arg
             print('nginx_port:',nginx_port)
+        elif opt in ("--mysql_hostname"):
+            mysql_hostname = arg
+            print('mysql_hostname:',mysql_hostname)
+        elif opt in ("--mysql_port"):
+            mysql_port = arg
+            print('mysql_port:',mysql_port)
+        elif opt in ("--mysql_username"):
+            mysql_username = arg
+            print('mysql_username:',mysql_username)
+        elif opt in ("--mysql_password"):
+            mysql_password = arg
+            print('mysql_password:',mysql_password)
 
     if 0 == len(loginserver_ip):
         print('please input the loginserver ip, eg:10.10.26.24')
@@ -213,8 +252,20 @@ def main(argv):
     if 0 == len(nginx_port):
         print('please input the nginx service port, default 8089')
         sys.exit()
+    if 0 == len(mysql_port):
+        print('please input the mysql service port, default 3306')
+        sys.exit()
+    if 0 == len(mysql_hostname):
+        print('please input the nginx service hostname')
+        sys.exit()
+    if 0 == len(mysql_username):
+        print('please input the nginx service username, default root')
+        sys.exit()
+    if 0 == len(mysql_password):
+        print('please input the nginx service password')
+        sys.exit()
 
-    generate_config_file(loginserver_ip,loginserver_port,hydra_ip,hydra_port,login_consent_ip,login_consent_port,grafana_ip,grafana_port,nginx_ip,nginx_port)
-    print('initial configurations success, configs could be found at loginserver_conf.ini/node_config.ini/hydra_config.ini')
+    generate_config_file(loginserver_ip,loginserver_port,hydra_ip,hydra_port,login_consent_ip,login_consent_port,grafana_ip,grafana_port,nginx_ip,nginx_port,mysql_hostname,mysql_port,mysql_username,mysql_password)
+    print('initial configurations success, configs could be found at loginserver_conf.ini/node_config.ini/hydra_config.ini/mysql_config.ini')
 if __name__=="__main__":
     main(sys.argv[1:])
