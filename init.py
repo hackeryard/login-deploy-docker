@@ -40,14 +40,14 @@ client_id = test-client
 client_secret = test-secret
 # 数据库设定
 [database]
-host = localhost
-user = root
-password = password
+host = $mysql_hostname
+user = $mysql_username
+password = $mysql_password
 database = open_paas
-port = 3306
+port = $mysql_port
 '''
     template = FileTemplate(loginserver_config_template_str)
-    result = template.substitute(dict(loginserver_ip=loginserver_ip,loginserver_port=loginserver_port,hydra_ip=hydra_ip,hydra_port=hydra_port))
+    result = template.substitute(dict(loginserver_ip=loginserver_ip,loginserver_port=loginserver_port,hydra_ip=hydra_ip,hydra_port=hydra_port,mysql_hostname=mysql_hostname,mysql_username=mysql_username,mysql_port=mysql_port,mysql_password=mysql_password))
     with open("loginserver_config.ini",'w') as tmp_file:
         tmp_file.write(result)
 
@@ -61,13 +61,14 @@ hydra_admin_url = http://$hydra_ip:4445
 login_remember = 300
 consent_remember = 300
 [database]
-host = localhost
-user = root
-password = password
+host = $mysql_hostname
+user = $mysql_username
+password = $mysql_password
 database = open_paas
+port = $mysql_port
 '''
     template = FileTemplate(node_config_template_str)
-    result = template.substitute(dict(login_consent_port=login_consent_port,hydra_ip=hydra_ip))
+    result = template.substitute(dict(login_consent_port=login_consent_port,hydra_ip=hydra_ip,mysql_hostname=mysql_hostname,mysql_username=mysql_username,mysql_port=mysql_port,mysql_password=mysql_password))
     with open("node_config.ini",'w') as tmp_file:
         tmp_file.write(result)
 
