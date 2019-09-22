@@ -11,22 +11,34 @@ class FileTemplate(Template):
 def generate_config_file(loginserver_ip,loginserver_port,hydra_ip,hydra_port,login_consent_ip,login_consent_port,grafana_ip,grafana_port,nginx_ip,nginx_port,mysql_hostname,mysql_port,mysql_username,mysql_password):
 
     # loginserver_config.ini
-    loginserver_config_template_str='''[server]
+    loginserver_config_template_str='''# loginserver的配置文件
+[server]
+# 服务端口
 port = $loginserver_port
+# 服务模式(http, https)
 http_schema = http
+# cookie有效域
 bk_cookie_domain = $loginserver_ip
 # oauth 2.0 callback url
 paas_domain = $loginserver_ip:$loginserver_port
+# 日志级别
 log_level = DEBUG
+# 初始密码设定
 [admin]
 username = admin
 password = admin
 [oauth]
+# oauth2.0 登录URL
 login_url = http://$hydra_ip:$hydra_port/oauth2/auth
+# 通过认证Code获取Access_token的API URL
 token_url = http://$hydra_ip:$hydra_port/oauth2/token
+# 获取用户信息的API URL
 userinfo_url = http://$hydra_ip:$hydra_port/userinfo
+# OAuth 2.0 客户端 ID
 client_id = test-client
+# OAuth 2.0 客户端 密钥
 client_secret = test-secret
+# 数据库设定
 [database]
 host = $mysql_hostname
 user = $mysql_username
